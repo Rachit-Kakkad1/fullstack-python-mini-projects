@@ -4,168 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Expense Tracker</title>
-  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/babel-standalone@7.22.10/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100">
-  <div id="root"></div>
-  <script type="text/babel">
-    function App() {
-      const [user, setUser] = React.useState(null);
-      const [name, setName] = React.useState('');
-      const [prefix, setPrefix] = React.useState('');
-      const [age, setAge] = React.useState('');
-      const [expenses, setExpenses] = React.useState([]);
-      const [newExpense, setNewExpense] = React.useState({ name: '', amount: '', category: '', date: '' });
-      const [total, setTotal] = React.useState(0);
-      const [error, setError] = React.useState('');
+<body>
+  <div class="app">
+    <h1>💰 Expense Tracker</h1>
 
-      const handleLogin = async (e) => {
-        e.preventDefault();
-        if (age < 18) {
-          setError('You must be 18 or older to use this app.');
-          return;
-        }
-        setUser({ name, prefix });
-        setError('');
-        await fetchExpenses();
-      };
+    <div class="form-container">
+      <input type="text" id="name" placeholder="Expense Name">
+      <input type="number" id="amount" placeholder="Amount (Rs.)">
+      <input type="text" id="category" placeholder="Category">
+      <input type="date" id="date">
+      <button onclick="addExpense()">➕ Add Expense</button>
+    </div>
 
-      const fetchExpenses = async () => {
-        const response = await fetch('http://localhost:5000/expenses');
-        const data = await response.json();
-        setExpenses(data);
-        const totalResponse = await fetch('http://localhost:5000/total');
-        const totalData = await totalResponse.json();
-        setTotal(totalData.total);
-      };
+    <h2>All Expenses</h2>
+    <ul id="expense-list"></ul>
 
-      const handleAddExpense = async (e) => {
-        e.preventDefault();
-        const response = await fetch('http://localhost:5000/expenses', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newExpense),
-        });
-        if (response.ok) {
-          setNewExpense({ name: '', amount: '', category: '', date: '' });
-          await fetchExpenses();
-        }
-      };
+    <h2 id="total">Total: Rs. 0</h2>
+  </div>
 
-      if (!user) {
-        return (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-              <h1 className="text-2xl font-bold mb-6 text-center">Expense Tracker Login</h1>
-              {error && <p className="text-red-500 mb-4">{error}</p>}
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Your Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-                <select
-                  value={prefix}
-                  onChange={(e) => setPrefix(e.target.value)}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="">Select Prefix</option>
-                  <option value="Mr.">Mr.</option>
-                  <option value="Mrs.">Mrs.</option>
-                </select>
-                <input
-                  type="number"
-                  placeholder="Your Age"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-                <button
-                  onClick={handleLogin}
-                  className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-                >
-                  Login
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      return (
-        <div className="container mx-auto p-4">
-          <h1 className="text-3xl font-bold mb-4">Welcome {user.prefix} {user.name}</h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-4">Add Expense</h2>
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Expense Name"
-                  value={newExpense.name}
-                  onChange={(e) => setNewExpense({ ...newExpense, name: e.target.value })}
-                  className="w-full p-2 border rounded"
-                />
-                <input
-                  type="number"
-                  placeholder="Amount (Rs.)"
-                  value={newExpense.amount}
-                  onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                  className="w-full p-2 border rounded"
-                />
-                <input
-                  type="text"
-                  placeholder="Category"
-                  value={newExpense.category}
-                  onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
-                  className="w-full p-2 border rounded"
-                />
-                <input
-                  type="date"
-                  value={newExpense.date}
-                  onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
-                  className="w-full p-2 border rounded"
-                />
-                <button
-                  onClick={handleAddExpense}
-                  className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600"
-                >
-                  Add Expense
-                </button>
-              </div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-4">Expenses</h2>
-              {expenses.length === 0 ? (
-                <p>No expenses added yet.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {expenses.map((expense, index) => (
-                    <li key={index} className="border-b py-2">
-                      {expense.date} | {expense.name} | {expense.category} | Rs. {expense.amount}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <p className="mt-4 font-bold">Total Spent: Rs. {total}</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setUser(null)}
-            className="mt-4 bg-red-500 text-white p-2 rounded hover:bg-red-600"
-          >
-            Logout
-          </button>
-        </div>
-      );
-    }
-
-    ReactDOM.render(<App />, document.getElementById('root'));
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
