@@ -2,28 +2,124 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Expense Tracker</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background: #f9f9f9;
+    }
+    h1 {
+      color: #333;
+    }
+    form, .expenses {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fff;
+    }
+    input, select, button {
+      margin: 5px;
+      padding: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #eee;
+    }
+  </style>
 </head>
 <body>
-  <div class="app">
-    <h1>💰 Expense Tracker</h1>
+  <h1>Expense Tracker</h1>
 
-    <div class="form-container">
-      <input type="text" id="name" placeholder="Expense Name">
-      <input type="number" id="amount" placeholder="Amount (Rs.)">
-      <input type="text" id="category" placeholder="Category">
-      <input type="date" id="date">
-      <button onclick="addExpense()">➕ Add Expense</button>
-    </div>
+  <!-- Add Expense Form -->
+  <form id="expenseForm">
+    <input type="text" id="name" placeholder="Expense Name" required>
+    <input type="number" id="amount" placeholder="Amount" required>
+    <input type="text" id="category" placeholder="Category" required>
+    <input type="date" id="date" required>
+    <button type="submit">Add Expense</button>
+  </form>
 
-    <h2>All Expenses</h2>
-    <ul id="expense-list"></ul>
-
-    <h2 id="total">Total: Rs. 0</h2>
+  <!-- Display Expenses -->
+  <div class="expenses">
+    <h2>Expenses</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Amount</th>
+          <th>Category</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="expensesTable"></tbody>
+    </table>
   </div>
 
-  <script src="script.js"></script>
+  <!-- Display Total -->
+  <div class="total">
+    <h2>Total Spent: ₹<span id="totalAmount">0</span></h2>
+  </div>
+
+  <script>
+    const API_URL = "http://127.0.0.1:5000";
+
+    // Load expenses on page load
+    async function loadExpenses() {
+      const res = await fetch(`${API_URL}/expenses`);
+      const data = await res.json();
+
+      const table = document.getElementById("expensesTable");
+      table.innerHTML = "";
+      data.forEach(exp => {
+        const row = `<tr>
+          <td>${exp.name}</td>
+          <td>${exp.amount}</td>
+          <td>${exp.category}</td>
+          <td>${exp.date}</td>
+        </tr>`;
+        table.innerHTML += row;
+      });
+
+      // Load total
+      const totalRes = await fetch(`${API_URL}/total`);
+      const totalData = await totalRes.json();
+      document.getElementById("totalAmount").innerText = totalData.total;
+    }
+
+    // Add expense
+    document.getElementById("expenseForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const expense = {
+        name: document.getElementById("name").value,
+        amount: parseFloat(document.getElementById("amount").value),
+        category: document.getElementById("category").value,
+        date: document.getElementById("date").value
+      };
+
+      await fetch(`${API_URL}/expenses`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(expense)
+      });
+
+      // Reset form + reload expenses
+      e.target.reset();
+      loadExpenses();
+    });
+
+    // Initial load
+    loadExpenses();
+  </script>
 </body>
 </html>
